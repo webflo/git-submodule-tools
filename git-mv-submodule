@@ -52,6 +52,7 @@ fi
 
 tdir=$PWD
 cd "$from"
+current_sha1=$(git log -1 --pretty=format:%H)
 ## check if submodule is clean
 git check-clean || exit 1
 ## check for unpushed changes
@@ -63,10 +64,18 @@ cd "$tdir"
 ## seems we're safe, so start moving
 ## get submodule url
 url=`git config -f .gitmodules --get submodule."$from".url`
-## remove it 
+## remove it
 git rm-submodule --no-commit "$from"
 ## add it again at the new location
 git submodule add "$url" "$to"
+
+cd "$to"
+echo "$PWD"
+echo "$current_sha1"
+git checkout "$current_sha1"
+cd "$tdir"
+git add "$to"
+
 ## commit changes
 if [[ ! "$nocommit" ]]; then
     git commit -m "moved submodule \"$from\" to \"$to\" (url: $url)"
